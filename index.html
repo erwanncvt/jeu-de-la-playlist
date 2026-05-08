@@ -504,7 +504,7 @@ async function spSearch(q) {
     try {
       const token = await getSpotifyToken();
       const r = await fetch(
-        `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8&market=FR`,
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=50&market=FR`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await r.json();

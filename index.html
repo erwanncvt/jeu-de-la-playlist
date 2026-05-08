@@ -228,10 +228,12 @@ async function spSearch(q){
   },350);
 }
 
+function proxyImg(url){if(!url)return '';return '/api/img?url='+encodeURIComponent(url);}
+
 function buildSpItem(t){
   const safe=JSON.stringify(t).replace(/'/g,"&#39;");
   return `<div class="sp-item">
-    <img class="sp-cover" src="${t.cover}" onerror="this.style.background='var(--bd)';this.removeAttribute('src')" alt="">
+    <img class="sp-cover" src="${proxyImg(t.cover)}" onerror="this.style.background='var(--bd)';this.removeAttribute('src')" alt="">
     <div class="sp-info"><div class="sp-name">${t.title}</div><div class="sp-art">${t.artist}</div></div>
     <button class="sp-add" onclick='addSong(${safe})'>+ Ajouter</button>
   </div>`;
@@ -254,7 +256,7 @@ function renderSel(){
     ?G.curSongs.map((s,i)=>`
       <div class="sel-song">
         <span class="sel-num">${i+1}</span>
-        <img class="sel-cover" src="${s.cover}" onerror="this.style.background='var(--bd)'" alt="">
+        <img class="sel-cover" src="${proxyImg(s.cover)}" onerror="this.style.background='var(--bd)'" alt="">
         <div class="sel-info"><div class="sel-title">${s.title}</div><div class="sel-artist">${s.artist}</div></div>
         <button class="sel-rm" onclick="removeSong('${s.id}')">✕</button>
       </div>`).join('')
@@ -389,7 +391,7 @@ function renderSong(){
   // Pochette
   const coverEl=document.getElementById('song-cover-big');
   if(s.cover){
-    coverEl.src=s.cover;
+    coverEl.src=proxyImg(s.cover);
     coverEl.style.display='block';
   }else{
     coverEl.style.display='none';

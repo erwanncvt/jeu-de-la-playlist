@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Jeu de la Playlist 🎵</title>
+  <meta name="description" content="Devinez qui a mis quelle musique ! Un jeu pour animer vos soirées entre amis.">
+  <meta name="theme-color" content="#0D0D0F">
+
+  <!-- Open Graph / partage réseaux sociaux -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Le Jeu de la Playlist 🎵">
+  <meta property="og:description" content="Devinez qui a mis quelle musique ! Un jeu pour animer vos soirées entre amis.">
+  <meta property="og:image" content="/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <!-- Favicon SVG inline -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0D0D0F;
+      --s1: #18181C;
+      --s2: #1E1E24;
+      --s3: #26262E;
+      --bd: #2E2E3A;
+      --acc: #1DB954;
+      --acc2: #A855F7;
+      --acc3: #C8F135;
+      --txt: #F0F0F0;
+      --mut: #888;
+      --rad: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--acc3);
+      margin-bottom: 2px;
+      letter-spacing: -.5px;
+    }
+
+    .sub { font-size: 13px; color: var(--mut); margin-bottom: 1.5rem; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .card {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: var(--rad);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    lbl {
+      font-size: 12px;
+      color: var(--mut);
+      display: block;
+      margin-bottom: 5px;
+      margin-top: 14px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    lbl:first-child { margin-top: 0; }
+
+    input[type=text], input[type=number] {
+      width: 100%;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--txt);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border .15s;
+    }
+    input:focus { border-color: var(--acc); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--acc);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      width: 100%;
+      margin-top: .75rem;
+    }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.98); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--bd);
+      color: var(--txt);
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; margin-top: 0; border-radius: 8px; }
+    .btn-lime { background: var(--acc3); color: #0D0D0F; }
+
+    /* Players */
+    .pchip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--s2);
+      border-radius: 10px;
+      padding: 9px 14px;
+      margin-bottom: 7px;
+    }
+    .avatar {
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      flex-shrink: 0;
+    }
+    .chip-x { background: none; border: none; color: var(--mut); cursor: pointer; font-size: 17px; padding: 0 3px; }
+    .chip-x:hover { color: #f44; }
+
+    /* Progress */
+    .prog-wrap { height: 3px; background: var(--bd); border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--acc); border-radius: 2px; transition: width .4s; }
+
+    /* Turn header */
+    .turn-hd {
+      background: var(--s2);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Spotify search */
+    .sp-wrap { position: relative; margin-bottom: .75rem; }
+    .sp-wrap input { padding-left: 38px; }
+    .sp-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; fill: var(--acc); flex-shrink: 0; }
+    .sp-results {
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      margin-top: 4px;
+      overflow: hidden;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .sp-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background .1s;
+      border-bottom: 1px solid var(--bd);
+    }
+    .sp-item:last-child { border-bottom: none; }
+    .sp-item:hover { background: var(--bd); }
+    .sp-cover { width: 38px; height: 38px; border-radius: 5px; object-fit: cover; background: var(--bd); flex-shrink: 0; }
+    .sp-info { flex: 1; min-width: 0; }
+    .sp-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-art { font-size: 12px; color: var(--mut); }
+    .sp-add { background: var(--acc); color: #000; border: none; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+
+    /* Selected songs */
+    .sel-song { display: flex; align-items: center; gap: 10px; background: var(--s3); border-radius: 9px; padding: 8px 12px; margin-bottom: 6px; }
+    .sel-num { font-size: 11px; color: var(--mut); width: 16px; text-align: center; }
+    .sel-cover { width: 34px; height: 34px; border-radius: 4px; background: var(--s2); flex-shrink: 0; }
+    .sel-info { flex: 1; min-width: 0; }
+    .sel-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sel-artist { font-size: 11px; color: var(--mut); }
+    .sel-rm { background: none; border: none; color: var(--mut); cursor: pointer; font-size: 15px; }
+    .sel-rm:hover { color: #f44; }
+
+    /* Timer */
+    .timer-ring { width: 64px; height: 64px; flex-shrink: 0; }
+    .timer-ring circle { fill: none; stroke: var(--bd); stroke-width: 4; }
+    .timer-ring .arc { stroke: var(--acc); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 163; stroke-dashoffset: 0; transform: rotate(-90deg); transform-origin: 32px 32px; transition: stroke .3s; }
+    .timer-num { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; fill: var(--txt); }
+
+    /* Guess */
+    .guess-card {
+      background: var(--s1);
+      border: 2px solid var(--acc2);
+      border-radius: var(--rad);
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .np-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--acc2); margin-bottom: 6px; }
+    .vinyl {
+      width: 72px; height: 72px; margin: .75rem auto;
+      border-radius: 50%;
+      background: conic-gradient(#1a1a1a 0deg,#2a2a2a 30deg,#1a1a1a 60deg,#2a2a2a 90deg,#1a1a1a 120deg,#2a2a2a 150deg,#1a1a1a 180deg,#2a2a2a 210deg,#1a1a1a 240deg,#2a2a2a 270deg,#1a1a1a 300deg,#2a2a2a 330deg);
+      display: flex; align-items: center; justify-content: center;
+      animation: spin 3s linear infinite;
+    }
+    .vinyl.paused { animation-play-state: paused; }
+    .vc { width: 22px; height: 22px; border-radius: 50%; background: var(--bg); border: 2px solid var(--acc); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .song-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+    .song-artist { font-size: 13px; color: var(--mut); }
+
+    .guess-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem; }
+    .gbtn {
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      border-radius: 10px;
+      padding: 11px 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--txt);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color .15s, background .15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gbtn:hover:not(:disabled) { border-color: var(--acc2); }
+    .gbtn.correct { background: #0a2e14; border-color: #1DB954; color: #1DB954; }
+    .gbtn.wrong { background: #2e0a0a; border-color: #e24b4a; color: #e24b4a; }
+
+    .rbanner { border-radius: 10px; padding: 11px 16px; font-weight: 600; font-size: 14px; text-align: center; margin-top: .75rem; display: none; }
+    .rbanner.win { background: #0a2e14; color: #1DB954; }
+    .rbanner.loss { background: #2e0a0a; color: #e24b4a; }
+    .rbanner.skip { background: #1e1a00; color: #FBBF24; }
+
+    /* Scoreboard */
+    .score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--bd); }
+    .score-row:last-child { border-bottom: none; }
+    .score-pts { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: var(--acc3); }
+    .winner-badge { background: var(--acc3); color: #0D0D0F; border-radius: 20px; font-size: 11px; font-weight: 700; padding: 2px 9px; font-family: 'Syne', sans-serif; }
+
+    /* Share */
+    .share-box { background: var(--s2); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-top: 1rem; }
+    .share-url { flex: 1; font-size: 12px; color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .share-copy { background: var(--acc3); color: #0D0D0F; border: none; border-radius: 7px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+    .info-box { background: var(--s2); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--mut); margin-bottom: 1rem; line-height: 1.5; }
+    .dots { display: flex; gap: 5px; margin-bottom: 1.25rem; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bd); }
+    .dot.on { background: var(--acc); }
+    .confetti { font-size: 26px; text-align: center; margin: 1rem 0; letter-spacing: 4px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>🎵 Le Jeu de la Playlist</h1>
+  <p class="sub">Devinez qui a mis quelle musique !</p>
+
+  <!-- SETUP -->
+  <div class="screen active" id="s-setup">
+    <div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="card">
+      <lbl>Nom de la session</lbl>
+      <input type="text" id="sn" placeholder="ex: Soirée chez Léo">
+      <lbl>Musiques par joueur</lbl>
+      <input type="number" id="spp" value="3" min="1" max="8">
+      <lbl>Ajouter des joueurs</lbl>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <input type="text" id="pi" placeholder="Prénom du joueur" style="flex:1;">
+        <button class="btn btn-sm" style="background:var(--s3);color:var(--txt);border:1px solid var(--bd);" onclick="addP()">+ Ajouter</button>
+      </div>
+    </div>
+    <div id="plist"></div>
+    <button class="btn btn-lime" onclick="goCollect()">C'est parti ! →</button>
+    <button class="btn btn-ghost" onclick="shareApp()" style="margin-top:.5rem;">🔗 Partager l'app</button>
+    <div id="share-setup" style="display:none;" class="share-box">
+      <span class="share-url" id="share-url-setup"></span>
+      <button class="share-copy" onclick="copyShare('share-url-setup')">Copier</button>
+    </div>
+  </div>
+
+  <!-- COLLECT -->
+  <div class="screen" id="s-collect">
+    <div class="dots"><div class="dot"></div><div class="dot on"></div><div class="dot"></div></div>
+    <div class="prog-wrap"><div class="prog-fill" id="cprog" style="width:0%"></div></div>
+    <div id="turn-hd"></div>
+    <div class="card">
+      <lbl>Recherche sur Spotify</lbl>
+      <div class="sp-wrap">
+        <svg class="sp-icon" viewBox="0 0 24 24">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.623.623 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.973-.519.781.781 0 01.52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 01.257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 11-.543-1.793c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 01-.955 1.612z"/>
+        </svg>
+        <input type="text" id="sp-search" placeholder="Titre, artiste…" oninput="spSearch(this.value)">
+      </div>
+      <div class="sp-results" id="sp-results" style="display:none;"></div>
+      <lbl style="margin-top:1rem;">Tes musiques sélectionnées</lbl>
+      <div id="sel-songs"></div>
+      <button class="btn" onclick="nextPlayer()">Valider mes musiques →</button>
+    </div>
+    <div class="info-box">💡 Passez l'écran au joueur suivant une fois validé !</div>
+  </div>
+
+  <!-- GUESS -->
+  <div class="screen" id="s-guess">
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot on"></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span id="round-inf" style="font-size:13px;color:var(--mut);"></span>
+      <svg class="timer-ring" id="timer-svg" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="26"/>
+        <circle class="arc" id="timer-arc" cx="32" cy="32" r="26"/>
+        <text class="timer-num" x="32" y="37" text-anchor="middle" id="timer-num">15</text>
+      </svg>
+    </div>
+    <div class="guess-card">
+      <div class="np-label">🎧 En écoute</div>
+      <div class="vinyl" id="vinyl"><div class="vc"></div></div>
+      <div class="song-title" id="gt"></div>
+      <div class="song-artist" id="ga"></div>
+    </div>
+    <p style="font-size:13px;color:var(--mut);margin-bottom:10px;text-align:center;">Qui a mis cette chanson ?</p>
+    <div class="guess-grid" id="gg"></div>
+    <div class="rbanner" id="rb"></div>
+    <button class="btn" id="nsb" style="display:none;" onclick="nextSong()">Chanson suivante →</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="s-results">
+    <div class="confetti">🎉🏆🎵</div>
+    <div class="card" id="scoreboard"></div>
+    <button class="btn btn-ghost" onclick="shareSession()" style="margin-top:.5rem;">🔗 Partager cette session</button>
+    <div id="share-sess" style="display:none;" class="share-box">
+      <span class="share-url" id="share-url-sess"></span>
+      <button class="share-copy" onclick="copyShare('share-url-sess')">Copier</button>
+    </div>
+    <button class="btn btn-ghost" onclick="restart()" style="margin-top:.5rem;">Rejouer</button>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#1DB954','#A855F7','#38BDF8','#FB923C','#F472B6','#FBBF24','#34D399','#F87171'];
+const CIRCUM = 163;
+
+// ---------------------------------------------------------------------------
+// Fake Spotify track database
+// Remplace spSearch() par un vrai appel https://api.spotify.com/v1/search
+// quand tu auras tes clés API Spotify.
+// ---------------------------------------------------------------------------
+const FAKE_TRACKS = [
+  {id:'1',title:'Blinding Lights',artist:'The Weeknd',cover:'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36'},
+  {id:'2',title:'As It Was',artist:'Harry Styles',cover:'https://i.scdn.co/image/ab67616d0000b273b46f74097655d7f353caab14'},
+  {id:'3',title:'Flowers',artist:'Miley Cyrus',cover:'https://i.scdn.co/image/ab67616d0000b273f429549123d441e1bf8aded0'},
+  {id:'4',title:'Anti-Hero',artist:'Taylor Swift',cover:'https://i.scdn.co/image/ab67616d0000b273bb54dde68cd23e2a268ae0f5'},
+  {id:'5',title:'Unholy',artist:'Sam Smith',cover:'https://i.scdn.co/image/ab67616d0000b273034aa0a8de4c2dcf0e7de8e1'},
+  {id:'6',title:'Shivers',artist:'Ed Sheeran',cover:'https://i.scdn.co/image/ab67616d0000b2734cb2b6b34f72be4db07d96ab'},
+  {id:'7',title:'Stay',artist:'Justin Bieber & The Kid LAROI',cover:'https://i.scdn.co/image/ab67616d0000b2735e83b2acad9c58ef0d3b3f76'},
+  {id:'8',title:'Levitating',artist:'Dua Lipa',cover:'https://i.scdn.co/image/ab67616d0000b273bd26ede1ae69327010d49946'},
+  {id:'9',title:'Good 4 U',artist:'Olivia Rodrigo',cover:'https://i.scdn.co/image/ab67616d0000b273a91c10fe9472d9bd89802e5a'},
+  {id:'10',title:'Montero',artist:'Lil Nas X',cover:'https://i.scdn.co/image/ab67616d0000b273be82673b5f79d9658ec0a9fd'},
+  {id:'11',title:'Save Your Tears',artist:'The Weeknd',cover:'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36'},
+  {id:'12',title:'Peaches',artist:'Justin Bieber',cover:'https://i.scdn.co/image/ab67616d0000b273e6f407c7f3a0ec98845e4431'},
+  {id:'13',title:'Industry Baby',artist:'Lil Nas X',cover:'https://i.scdn.co/image/ab67616d0000b273be82673b5f79d9658ec0a9fd'},
+  {id:'14',title:'Cold Heart',artist:'Elton John & Dua Lipa',cover:'https://i.scdn.co/image/ab67616d0000b273bd26ede1ae69327010d49946'},
+  {id:'15',title:'Permission to Dance',artist:'BTS',cover:'https://i.scdn.co/image/ab67616d0000b273b4e04c94fc4c9ca52a1df18d'},
+  {id:'16',title:'Butter',artist:'BTS',cover:'https://i.scdn.co/image/ab67616d0000b273b4e04c94fc4c9ca52a1df18d'},
+  {id:'17',title:'Ghost',artist:'Justin Bieber',cover:'https://i.scdn.co/image/ab67616d0000b273e6f407c7f3a0ec98845e4431'},
+  {id:'18',title:'Easy On Me',artist:'Adele',cover:'https://i.scdn.co/image/ab67616d0000b2734e1f9a3b7f4f9b4f06a5e0c1'},
+  {id:'19',title:'Watermelon Sugar',artist:'Harry Styles',cover:'https://i.scdn.co/image/ab67616d0000b273b46f74097655d7f353caab14'},
+  {id:'20',title:'Dynamite',artist:'BTS',cover:'https://i.scdn.co/image/ab67616d0000b273b4e04c94fc4c9ca52a1df18d'},
+  {id:'21',title:'drivers license',artist:'Olivia Rodrigo',cover:'https://i.scdn.co/image/ab67616d0000b273a91c10fe9472d9bd89802e5a'},
+  {id:'22',title:'Circles',artist:'Post Malone',cover:'https://i.scdn.co/image/ab67616d0000b2738fcda0f492b8c9b5c10ee1c8'},
+  {id:'23',title:'Mood',artist:'24kGoldn',cover:'https://i.scdn.co/image/ab67616d0000b273a1a9e8f1ad52fda3ef0af4b3'},
+  {id:'24',title:'Heat Waves',artist:'Glass Animals',cover:'https://i.scdn.co/image/ab67616d0000b2739e495fb707973f3390850eea'},
+  {id:'25',title:'Beggin',artist:'Maneskin',cover:'https://i.scdn.co/image/ab67616d0000b2732819f241fe2e71fc77a2f7e6'},
+  {id:'26',title:'Escapism',artist:'RAYE',cover:'https://i.scdn.co/image/ab67616d0000b273c6af5ffa661a365a0b97fef2'},
+  {id:'27',title:'Creepin',artist:'Metro Boomin & The Weeknd',cover:'https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36'},
+  {id:'28',title:'Calm Down',artist:'Rema & Selena Gomez',cover:'https://i.scdn.co/image/ab67616d0000b273f9b7b6b2f7e7d4d6a5b8c3e1'},
+  {id:'29',title:'Là-haut',artist:'Vald',cover:'https://i.scdn.co/image/ab67616d0000b273c1f9e9a2f1b2d3e4f5a6b7c8'},
+  {id:'30',title:'Freestyle',artist:'Orelsan',cover:'https://i.scdn.co/image/ab67616d0000b273a1b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'31',title:'La Nuit Je Mens',artist:'Alain Bashung',cover:'https://i.scdn.co/image/ab67616d0000b273d1b1b2c3d4e5f6a7b8c9d0e1'},
+  {id:'32',title:'Tombé Pour Elle',artist:'Vianney',cover:'https://i.scdn.co/image/ab67616d0000b273e1b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'33',title:'Nuit 17 à 52',artist:'Christine and the Queens',cover:'https://i.scdn.co/image/ab67616d0000b273f1b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'34',title:'Sprinter',artist:'Dave & Central Cee',cover:'https://i.scdn.co/image/ab67616d0000b27301b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'35',title:'Ella Baila Sola',artist:'Eslabon Armado',cover:'https://i.scdn.co/image/ab67616d0000b27311b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'36',title:'Cruel Summer',artist:'Taylor Swift',cover:'https://i.scdn.co/image/ab67616d0000b273bb54dde68cd23e2a268ae0f5'},
+  {id:'37',title:'Vampire',artist:'Olivia Rodrigo',cover:'https://i.scdn.co/image/ab67616d0000b273a91c10fe9472d9bd89802e5a'},
+  {id:'38',title:'Seven',artist:'Jung Kook',cover:'https://i.scdn.co/image/ab67616d0000b27321b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'39',title:'Flowers',artist:'In Flames',cover:'https://i.scdn.co/image/ab67616d0000b27331b2c3d4e5f6a7b8c9d0e1f2'},
+  {id:'40',title:'Golden Hour',artist:'JVKE',cover:'https://i.scdn.co/image/ab67616d0000b27341b2c3d4e5f6a7b8c9d0e1f2'},
+];
+
+let G = {
+  players: [], spp: 3, playlist: [], cur: 0,
+  scores: {}, cturn: 0, curSongs: [], timer: null, timerLeft: 15
+};
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function ini(n) { return n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+// ---------------------------------------------------------------------------
+// Spotify search (simulée — remplacer par vraie API si besoin)
+// ---------------------------------------------------------------------------
+// Pour brancher la vraie API Spotify :
+// 1. Créer une app sur https://developer.spotify.com/dashboard
+// 2. Implémenter le flux OAuth Client Credentials côté serveur (ex: /api/token en Vercel Function)
+// 3. Remplacer la fonction spSearch() ci-dessous par un fetch vers :
+//    https://api.spotify.com/v1/search?q={query}&type=track&limit=6
+//    avec le header Authorization: Bearer {access_token}
+
+let spTimeout = null;
+function spSearch(q) {
+  clearTimeout(spTimeout);
+  const res = document.getElementById('sp-results');
+  if (!q) { res.style.display = 'none'; return; }
+  spTimeout = setTimeout(() => {
+    const ql = q.toLowerCase();
+    const hits = FAKE_TRACKS.filter(t =>
+      t.title.toLowerCase().includes(ql) || t.artist.toLowerCase().includes(ql)
+    ).slice(0, 6);
+    if (!hits.length) { res.style.display = 'none'; return; }
+    res.style.display = 'block';
+    res.innerHTML = hits.map(t => `
+      <div class="sp-item">
+        <img class="sp-cover" src="${t.cover}" onerror="this.style.background='var(--bd)';this.removeAttribute('src')" alt="${t.title}">
+        <div class="sp-info">
+          <div class="sp-name">${t.title}</div>
+          <div class="sp-art">${t.artist}</div>
+        </div>
+        <button class="sp-add" onclick='addSong(${JSON.stringify(t)})'>+ Ajouter</button>
+      </div>`).join('');
+  }, 200);
+}
+
+function addSong(t) {
+  const spp = parseInt(document.getElementById('spp').value) || 3;
+  if (G.curSongs.find(s => s.id === t.id)) return;
+  if (G.curSongs.length >= spp) { alert(`Maximum ${spp} musiques !`); return; }
+  G.curSongs.push(t);
+  document.getElementById('sp-search').value = '';
+  document.getElementById('sp-results').style.display = 'none';
+  renderSel();
+}
+
+function removeSong(id) { G.curSongs = G.curSongs.filter(s => s.id !== id); renderSel(); }
+
+function renderSel() {
+  document.getElementById('sel-songs').innerHTML = G.curSongs.length
+    ? G.curSongs.map((s, i) => `
+      <div class="sel-song">
+        <span class="sel-num">${i + 1}</span>
+        <img class="sel-cover" src="${s.cover}" onerror="this.style.background='var(--bd)'" alt="">
+        <div class="sel-info">
+          <div class="sel-title">${s.title}</div>
+          <div class="sel-artist">${s.artist}</div>
+        </div>
+        <button class="sel-rm" onclick="removeSong('${s.id}')">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:13px;color:var(--mut);padding:8px 0;">Cherche une musique ci-dessus…</div>';
+}
+
+// ---------------------------------------------------------------------------
+// Players
+// ---------------------------------------------------------------------------
+function addP() {
+  const inp = document.getElementById('pi');
+  const name = inp.value.trim();
+  if (!name || G.players.find(p => p.name === name)) { inp.value = ''; return; }
+  G.players.push({ name, color: COLORS[G.players.length % COLORS.length] });
+  G.scores[name] = 0;
+  renderPlist(); inp.value = ''; inp.focus();
+}
+
+document.getElementById('pi').addEventListener('keydown', e => { if (e.key === 'Enter') addP(); });
+
+function removeP(i) { G.players.splice(i, 1); renderPlist(); }
+
+function renderPlist() {
+  document.getElementById('plist').innerHTML = G.players.map((p, i) => `
+    <div class="pchip">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:34px;height:34px;background:${p.color}22;color:${p.color};font-size:13px;">${ini(p.name)}</div>
+        <span style="font-size:14px;font-weight:500;">${p.name}</span>
+      </div>
+      <button class="chip-x" onclick="removeP(${i})">✕</button>
+    </div>`).join('');
+}
+
+// ---------------------------------------------------------------------------
+// Collect
+// ---------------------------------------------------------------------------
+function goCollect() {
+  G.spp = parseInt(document.getElementById('spp').value) || 3;
+  if (G.players.length < 2) { alert('Ajoute au moins 2 joueurs !'); return; }
+  G.cturn = 0; G.playlist = [];
+  show('s-collect'); renderTurn();
+}
+
+function renderTurn() {
+  const p = G.players[G.cturn];
+  document.getElementById('cprog').style.width = (G.cturn / G.players.length * 100) + '%';
+  document.getElementById('turn-hd').innerHTML = `
+    <div class="turn-hd">
+      <div class="avatar" style="width:48px;height:48px;background:${p.color}22;color:${p.color};font-size:20px;">${ini(p.name)}</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">${p.name}</div>
+        <div style="font-size:12px;color:var(--mut);">Choisis tes ${G.spp} musiques</div>
+      </div>
+    </div>`;
+  G.curSongs = []; renderSel();
+  document.getElementById('sp-search').value = '';
+  document.getElementById('sp-results').style.display = 'none';
+}
+
+function nextPlayer() {
+  if (G.curSongs.length === 0) { alert('Choisis au moins 1 musique !'); return; }
+  const p = G.players[G.cturn];
+  G.curSongs.forEach(s => G.playlist.push({ ...s, owner: p.name, ownerColor: p.color }));
+  G.cturn++;
+  if (G.cturn < G.players.length) { renderTurn(); }
+  else { shuffle(); startGuess(); }
+}
+
+function shuffle() {
+  for (let i = G.playlist.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [G.playlist[i], G.playlist[j]] = [G.playlist[j], G.playlist[i]];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Timer
+// ---------------------------------------------------------------------------
+function startTimer() {
+  clearInterval(G.timer); G.timerLeft = 15; updateTimer();
+  G.timer = setInterval(() => {
+    G.timerLeft--;
+    updateTimer();
+    if (G.timerLeft <= 0) { clearInterval(G.timer); timeUp(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  const t = G.timerLeft;
+  const arc = document.getElementById('timer-arc');
+  const num = document.getElementById('timer-num');
+  if (!arc) return;
+  arc.style.strokeDashoffset = CIRCUM * (1 - t / 15);
+  arc.style.stroke = t <= 5 ? '#e24b4a' : t <= 9 ? '#FBBF24' : 'var(--acc)';
+  num.textContent = t;
+  num.style.fill = t <= 5 ? '#e24b4a' : t <= 9 ? '#FBBF24' : 'var(--txt)';
+}
+
+function timeUp() {
+  document.getElementById('vinyl').classList.add('paused');
+  disableGuess();
+  const s = G.playlist[G.cur];
+  showBanner('skip', `⏰ Temps écoulé ! C'était ${s.owner} !`);
+  const nb = document.getElementById('nsb');
+  nb.style.display = 'flex';
+  nb.textContent = G.cur >= G.playlist.length - 1 ? 'Voir les scores 🏆' : 'Chanson suivante →';
+}
+
+// ---------------------------------------------------------------------------
+// Guess
+// ---------------------------------------------------------------------------
+function startGuess() { G.cur = 0; show('s-guess'); renderSong(); }
+
+function renderSong() {
+  const s = G.playlist[G.cur];
+  document.getElementById('round-inf').textContent = `Chanson ${G.cur + 1} / ${G.playlist.length}`;
+  document.getElementById('gt').textContent = s.title;
+  document.getElementById('ga').textContent = s.artist ? '— ' + s.artist : '';
+  document.getElementById('vinyl').classList.remove('paused');
+  document.getElementById('rb').style.display = 'none';
+  document.getElementById('nsb').style.display = 'none';
+  document.getElementById('gg').innerHTML = G.players.map(p => `
+    <button class="gbtn" onclick="guess('${p.name}')">
+      <span style="width:9px;height:9px;border-radius:50%;background:${p.color};flex-shrink:0;"></span>${p.name}
+    </button>`).join('');
+  startTimer();
+}
+
+function disableGuess() {
+  const s = G.playlist[G.cur];
+  document.querySelectorAll('.gbtn').forEach(b => {
+    b.disabled = true;
+    if (b.textContent.trim() === s.owner) b.classList.add('correct');
+  });
+}
+
+function guess(name) {
+  clearInterval(G.timer);
+  document.getElementById('vinyl').classList.add('paused');
+  const s = G.playlist[G.cur];
+  const ok = name === s.owner;
+  document.querySelectorAll('.gbtn').forEach(b => {
+    b.disabled = true;
+    if (b.textContent.trim() === s.owner) b.classList.add('correct');
+    else if (b.textContent.trim() === name && !ok) b.classList.add('wrong');
+  });
+  if (ok) G.scores[name] = (G.scores[name] || 0) + 1;
+  showBanner(ok ? 'win' : 'loss', ok ? `✅ Bravo ! C'était bien ${s.owner} !` : `❌ Raté ! C'était ${s.owner} !`);
+  const nb = document.getElementById('nsb');
+  nb.style.display = 'flex';
+  nb.textContent = G.cur >= G.playlist.length - 1 ? 'Voir les scores 🏆' : 'Chanson suivante →';
+}
+
+function showBanner(cls, txt) {
+  const rb = document.getElementById('rb');
+  rb.className = 'rbanner ' + cls;
+  rb.textContent = txt;
+  rb.style.display = 'block';
+}
+
+function nextSong() {
+  G.cur++;
+  if (G.cur >= G.playlist.length) showResults();
+  else renderSong();
+}
+
+// ---------------------------------------------------------------------------
+// Results
+// ---------------------------------------------------------------------------
+function showResults() {
+  clearInterval(G.timer);
+  show('s-results');
+  const sorted = [...G.players].sort((a, b) => (G.scores[b.name] || 0) - (G.scores[a.name] || 0));
+  const tot = G.playlist.length;
+  let html = `<div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:1rem;">Classement final</div>`;
+  sorted.forEach((p, i) => {
+    const sc = G.scores[p.name] || 0;
+    html += `<div class="score-row">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:36px;height:36px;background:${p.color}22;color:${p.color};font-size:14px;">${ini(p.name)}</div>
+        <div>
+          <div style="font-weight:600;font-size:15px;">${p.name}</div>
+          <div style="font-size:12px;color:var(--mut);">${sc} / ${tot} bonne${sc > 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${i === 0 ? '<span class="winner-badge">👑</span>' : ''}
+        <span class="score-pts">${sc}</span>
+      </div>
+    </div>`;
+  });
+  document.getElementById('scoreboard').innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Share
+// ---------------------------------------------------------------------------
+function buildUrl(withSession) {
+  const base = window.location.href.split('?')[0];
+  if (!withSession) return base;
+  const data = {
+    players: G.players.map(p => p.name),
+    spp: G.spp,
+    playlist: G.playlist.map(s => ({ t: s.title, a: s.artist, o: s.owner })),
+    scores: G.scores
+  };
+  return base + '?s=' + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+}
+
+function shareApp() {
+  const url = buildUrl(false);
+  document.getElementById('share-url-setup').textContent = url;
+  document.getElementById('share-setup').style.display = 'flex';
+  if (navigator.share) navigator.share({ title: 'Le Jeu de la Playlist', url });
+}
+
+function shareSession() {
+  const url = buildUrl(true);
+  document.getElementById('share-url-sess').textContent = url;
+  document.getElementById('share-sess').style.display = 'flex';
+  if (navigator.share) navigator.share({ title: 'Le Jeu de la Playlist — résultats', url });
+}
+
+function copyShare(id) {
+  const txt = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector(`#${id} ~ button`) || document.querySelector('.share-copy');
+    document.querySelectorAll('.share-copy').forEach(b => {
+      if (b.previousElementSibling && b.previousElementSibling.id === id) {
+        const orig = b.textContent; b.textContent = 'Copié !';
+        setTimeout(() => b.textContent = orig, 1500);
+      }
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Restore from URL (session partagée)
+// ---------------------------------------------------------------------------
+function tryRestore() {
+  const p = new URLSearchParams(window.location.search).get('s');
+  if (!p) return;
+  try {
+    const d = JSON.parse(decodeURIComponent(escape(atob(p))));
+    G.players = d.players.map((n, i) => ({ name: n, color: COLORS[i % COLORS.length] }));
+    G.spp = d.spp;
+    G.playlist = d.playlist.map(s => ({ ...s, title: s.t, artist: s.a, owner: s.o }));
+    G.scores = d.scores;
+    showResults();
+  } catch (e) { console.warn('Invalid session URL', e); }
+}
+
+tryRestore();
+</script>
+</body>
+</html>

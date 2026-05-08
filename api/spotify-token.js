@@ -1,8 +1,19 @@
 module.exports = async function handler(req, res) {
-  res.json({
-    hasId: !!process.env.SPOTIFY_CLIENT_ID,
-    hasSecret: !!process.env.SPOTIFY_CLIENT_SECRET,
-    idValue: process.env.SPOTIFY_CLIENT_ID ? process.env.SPOTIFY_CLIENT_ID.slice(0,4) : 'none',
-    allEnvKeys: Object.keys(process.env).filter(k => k.includes('SPOTIFY'))
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const creds = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${creds}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
   });
+
+  const data = await response.json();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(data);
 }
